@@ -60,7 +60,37 @@ router.get('/',UserController.getUsers)
  */
 router.post('/nodes',UserController.getUsersNodes)
 
-
+/**
+ * @swagger
+ * /v1/api/users/nodes/details:
+ *  post:
+ *    summary: Returns nodes details of online-offline
+ *    tags:
+ *       - name : User Information
+ *    produces:
+ *       - application/json
+ *    parameters:
+ *       - name: body
+ *         description: Object of multiple UserIds Array 
+ *         in:  body
+ *         required: true   
+ *         schema:
+ *            type: object
+ *            required:
+ *               - masterId
+ *            properties:              
+ *               masterId :
+ *                 type: array
+ *                 items: 
+ *                     type: string           
+ *    responses:
+ *      '200':
+ *          description: A Successfull Response
+ *      '404':
+ *          description: Not Found
+ *      '500':
+ *          description: Some Internal Errors
+ */
 router.post('/nodes/details',UserController.getNodesDetails)
 
 module.exports = router

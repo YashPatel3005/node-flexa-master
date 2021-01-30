@@ -145,7 +145,7 @@ exports.getNodesDetails = async function (req,res,next){
         for(let i=0;i<masterID.length;i++){ 
             let masterIds = data.filter(e => e.masterId === masterID[i])
            
-            let masterData = masterIds.map((d)=>({timestamp:d.timestamp}))
+            let masterData = masterIds.map((d)=>({timestamp:d.timestamp,status:1}))
             
             let resetData = data1.map((d)=>({nodeResetTime:d.NodeResetTime}))
             const master = {
