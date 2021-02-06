@@ -5,9 +5,9 @@ var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 const path = require('path');
 
-// const session = require('express-session')
+const session = require('express-session')
 // const lodash = require('lodash')
-// const { v4: uuid4 } = require('uuid')
+const { v4: uuid4 } = require('uuid')
 
 //set Environment variable using dotenv package 
 const envPath = path.resolve(process.cwd(), '.env.'+ process.env.NODE_ENV)
@@ -37,16 +37,16 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 
 // //Middle-ware
-// app.use(session(
-//   { name:'SessionCookie',
-//     genid: function(req) {
-//         console.log('session id created');
-//       return uuid4();}, // use UUIDs for session IDs
-//     secret: 'secret-key',
-//     resave: false,
-//     saveUninitialized: false,
-//     cookie: { secure: false}
-//   }));
+app.use(session(
+  { name:'SessionCookie',
+    genid: function(req) {
+        console.log('session id created');
+      return uuid4();}, // use UUIDs for session IDs
+    secret: 'secret-key',
+    resave: false,
+    saveUninitialized: false,
+    cookie: { secure: false}
+  }));
 
 app.prefix('/v1',function(app){
   app.use('/api',ApiRoutes)

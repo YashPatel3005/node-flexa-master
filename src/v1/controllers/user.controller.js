@@ -1,7 +1,7 @@
 var moment = require('moment'); // require
 moment().format(); 
 
-// const { v4: uuid4 } = require('uuid')
+const { v4: uuid4 } = require('uuid')
 const Promise = require('bluebird');
 const axios = require('axios')
 
@@ -211,41 +211,14 @@ exports.getNodesDetails = async function (req,res,next){
     db.close()
 }
 
-exports.getLiveDemo = async function(req,res,next){
+exports.getSessionId = async function(req,res,next){
     try {
-        //Count user that try this demo
-        const count = await db.allAsync(`SELECT * FROM visitorCount`)
-        count[0].userCount += 1
-        await db.runAsync(`UPDATE visitorCount SET userCount = ${count[0].userCount}`)
-        const visitorCount = await db.allAsync(`SELECT * FROM visitorCount`)
-        
-        //fetch endpoint API
-        const url = 'https://be.flexahub.com/v1/operate/endpointid/'
-        const params = {
-            endpointid: 'EP_cd99e56e-272a-4a96-b17b-f6923b18e7cc',
-            status: 0
-        }
-        const body = {}
-        const config = {
-            auth:{
-                username: 'vinrap+test@gmail.com',
-                password: 'Vin@7899'
-            }
-        }
-        axios.post(url,params,body,config)
-             .then((data)=>{
-                 console.log(data);
-                 console.log("authenticated");
-             })
-             .catch((e)=>{
-             //  console.log(e);
-                 console.log("Not Authenticated");
-             })
+        //generate session ID  
+        req.session.uuid = uuid4()
+        await db.runAsync(`INSERT INTO session(uuid) VALUES('${req.session.uuid}')`)
+        const countUser = await db.allAsync('SELECT * FROM session') 
+        return res.status(200).json({result:countUser.length})
 
-
-       
-    
-        return res.status(200).json({message:'Fetched User Successfully.',totalVisitors:visitorCount[0].userCount})
 
         //when session is not exists we create a uuid and add that to our session and on database
         // if(!req.session.uuid){
@@ -262,6 +235,73 @@ exports.getLiveDemo = async function(req,res,next){
         //     const countUser = await db.allAsync(`SELECT * FROM session`) 
         //     return res.status(200).json({result:countUser.length})
         // }
+    } catch (err) {
+        if (!err.status) {
+            err.status = 500;
+        }
+        res.status(err.status).json({message:'Internal Server Error'})
+        next(err); 
+    }
+    db.close()
+}
+
+
+exports.getLiveDemo = async function(req,res,next){
+    try {
+        
+        //take endpointid and status from UI 
+        const endpointId = req.params.endpointId
+        const status = req.params.status
+       
+        // http://localhost:3000/v1/api/users/demo/try/EP_c624aa54-83d6-4128-ad1e-f17e6c2d3e9a/11
+        
+        //fetch endpoint API
+        axios.post(`https://be.flexahub.com/v1/operate/endpointid/${endpointId}/${status}`,{},{
+                auth:{
+                    username: 'vinrap@gmail.com',
+                    password: 'Vin@7899'
+                }
+            })
+            .then((data)=>{
+                console.log(data.data);
+            })
+            .catch((e)=>{
+                console.log("Not Authenticated");
+            })
+        //Count user that try this demo
+        // const count = await db.allAsync(`SELECT * FROM visitorCount`)
+        // count[0].userCount += 1
+        // await db.runAsync(`UPDATE visitorCount SET userCount = ${count[0].userCount}`)
+        // const visitorCount = await db.allAsync(`SELECT * FROM visitorCount`)
+        
+        //fetch endpoint API
+        // const url = 'https://be.flexahub.com/v1/operate/endpointid/'
+        // const params = {
+        //     endpointid: "EP_c624aa54-83d6-4128-ad1e-f17e6c2d3e9a",
+        //     status: "0" 
+        // }
+        // console.log(params);
+        
+    
+        // const config = {
+        //     auth:{
+        //         username: 'vinrap@gmail.com',
+        //         password: 'Vin@7899'
+        //     }
+        // }
+        // axios.post("https://be.flexahub.com/v1/operate/endpointid/EP_c624aa54-83d6-4128-ad1e-f17e6c2d3e9a/0",config)
+        //      .then((data)=>{
+        //          console.log(data);
+        //          console.log("authenticated");
+        //      })
+        //      .catch((e)=>{
+        //          console.log("Not Authenticated");
+        //      })
+
+        // return res.status(200).json({message:'Fetched User Successfully.',totalVisitors:visitorCount[0].userCount})
+
+  
+        
     }catch (err) {
         if (!err.status) {
             err.status = 500;

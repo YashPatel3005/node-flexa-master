@@ -93,7 +93,8 @@ router.post('/nodes',UserController.getUsersNodes)
  */
 router.post('/nodes/details',UserController.getNodesDetails)
 
+router.get('/demo',UserController.getSessionId)
 
-router.get('/demo',UserController.getLiveDemo)
+router.post('/demo/try/:endpointId/:status',UserController.getLiveDemo)
 
 module.exports = router

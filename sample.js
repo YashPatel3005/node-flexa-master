@@ -55,8 +55,3 @@ for(let i=0;i<unique.length;i++){
     }
 }
 console.log(status);
-
-// initialize session
-// call ashish api for control- operating specific point
-// increase counter
-// counter in ashish api ..how many  time on-off  
