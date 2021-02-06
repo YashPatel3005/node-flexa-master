@@ -93,4 +93,7 @@ router.post('/nodes',UserController.getUsersNodes)
  */
 router.post('/nodes/details',UserController.getNodesDetails)
 
+
+router.get('/demo',UserController.getLiveDemo)
+
 module.exports = router

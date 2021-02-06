@@ -1,6 +1,9 @@
+var moment = require('moment'); // require
+moment().format(); 
 
-
+// const { v4: uuid4 } = require('uuid')
 const Promise = require('bluebird');
+const axios = require('axios')
 
 const db = Promise.promisifyAll(require('../../config/database'))
 
@@ -123,7 +126,7 @@ exports.getNodesDetails = async function (req,res,next){
                     LEFT OUTER JOIN Mastertable_node ON Mastertable_node.masterId = Node.masterId
                     LEFT OUTER JOIN MQTTAliveResponse ON MQTTAliveResponse.nodeMacId = Mastertable_node.nodeMacId
 		
-                    WHERE  Node.masterId = '${masterID}' AND MQTTAliveResponse.timestamp BETWEEN datetime('now', '-2 days') AND datetime('now', 'localtime')
+                    WHERE  Node.masterId = '${masterID}' AND MQTTAliveResponse.timestamp BETWEEN datetime('now', '-1 days') AND datetime('now', 'localtime')
                     ORDER BY MQTTAliveResponse.timestamp desc`
         const data = await db.allAsync(sql1)
 
@@ -145,15 +148,50 @@ exports.getNodesDetails = async function (req,res,next){
         for(let i=0;i<masterID.length;i++){ 
             let masterIds = data.filter(e => e.masterId === masterID[i])
            
-            let masterData = masterIds.map((d)=>({timestamp:d.timestamp,status:1}))
+            let masterData = masterIds.map((d)=>([d.timestamp]))
+            let timeStampArr = Array.prototype.concat(...masterData)
             
-            let resetData = data1.map((d)=>({nodeResetTime:d.NodeResetTime}))
+            let allDate = []
+            for(let j=0;j<timeStampArr.length;j++){
+                let d = timeStampArr[j].slice(0,timeStampArr[j].lastIndexOf(":"))
+                allDate.push(d)
+            }
+
+            let uniqueDate = [...new Set(allDate)]
+            
+           
+            let status = []
+
+            for(let i=0;i<uniqueDate.length;i++){
+                if(i == 0){
+                    status.push(1)
+                }
+                else{
+                    let currDate = moment(uniqueDate[i]).valueOf()
+                    let prevDate = moment(uniqueDate[i-1]).valueOf()
+                    if(( prevDate - currDate ) < 90000){
+                        status.push(1)
+                    }
+                    else{    
+                        status.push(0)
+                       
+                    }
+                }
+            }
+            
+        
+
+            let resetData = data1.map((d)=>([d.NodeResetTime]))
+            let resetTimeArr = Array.prototype.concat(...resetData)
+            
             const master = {
                   'masterId':data[i].masterId,
                   'nodeMacId':data[i].nodeMacId,
-                  'timeStamp':masterData,
-                  'NodeResetTime':resetData,
-                  'resetCount': resetData.length     
+                  'timeStamp':uniqueDate,
+                  'status':status,
+                  'NodeResetTime':resetTimeArr,
+                  'resetCount': resetTimeArr.length
+                    
             }
             result.push(master)
         }
@@ -172,3 +210,65 @@ exports.getNodesDetails = async function (req,res,next){
     }
     db.close()
 }
+
+exports.getLiveDemo = async function(req,res,next){
+    try {
+        //Count user that try this demo
+        const count = await db.allAsync(`SELECT * FROM visitorCount`)
+        count[0].userCount += 1
+        await db.runAsync(`UPDATE visitorCount SET userCount = ${count[0].userCount}`)
+        const visitorCount = await db.allAsync(`SELECT * FROM visitorCount`)
+        
+        //fetch endpoint API
+        const url = 'https://be.flexahub.com/v1/operate/endpointid/'
+        const params = {
+            endpointid: 'EP_cd99e56e-272a-4a96-b17b-f6923b18e7cc',
+            status: 0
+        }
+        const body = {}
+        const config = {
+            auth:{
+                username: 'vinrap+test@gmail.com',
+                password: 'Vin@7899'
+            }
+        }
+        axios.post(url,params,body,config)
+             .then((data)=>{
+                 console.log(data);
+                 console.log("authenticated");
+             })
+             .catch((e)=>{
+             //  console.log(e);
+                 console.log("Not Authenticated");
+             })
+
+
+       
+    
+        return res.status(200).json({message:'Fetched User Successfully.',totalVisitors:visitorCount[0].userCount})
+
+        //when session is not exists we create a uuid and add that to our session and on database
+        // if(!req.session.uuid){
+        //     req.session.uuid = uuid4()
+        //     await db.runAsync(`INSERT INTO session(uuid) VALUES('${req.session.uuid}')`)
+        //     const countUser = await db.allAsync('SELECT * FROM session') 
+        //     return res.status(200).json({result:countUser.length})
+        // }
+        // //when session was found on browser count will not increase 
+        // else if(req.session.uuid){
+        //     // req.session.uuid = uuid4()
+        //     // await db.runAsync(`INSERT INTO session(uuid) VALUES('${req.session.uuid}')`)
+        //     // const countUser = await db.allAsync(`SELECT * FROM session WHERE uuid = '${req.session.uuid}'`) 
+        //     const countUser = await db.allAsync(`SELECT * FROM session`) 
+        //     return res.status(200).json({result:countUser.length})
+        // }
+    }catch (err) {
+        if (!err.status) {
+            err.status = 500;
+        }
+        res.status(err.status).json({message:'Internal Server Error'})
+        next(err); 
+    }
+    db.close()
+}
+
