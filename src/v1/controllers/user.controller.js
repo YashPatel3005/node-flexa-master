@@ -249,39 +249,33 @@ exports.getLiveDemo = async function(req,res,next){
         //take endpointid and status from UI 
         const endpointId = req.params.endpointId
         const status = req.params.status
-        
+        // console.time();
         // http:/ calhost:3000/v1/api/users/demo/try/EP_c624aa54-83d6-4128-ad1e-f17e6c2d3e9a/11
         if(req.session.uuid){
-             //fetch endpoint API
-                // axios.post(`https://be.flexahub.com/v1/operate/endpointid/${endpointId}/${status}`,{},{
-                //     auth:{
-                //         username: 'vinrap@gmail.com',
-                //         password: 'Vin@7899'
-                //     }
-                // })
-                // .then((data)=>{
-                //     // console.log(status);
-                // })
-                // .catch((e)=>{
-                //     console.log("Not Authenticated");
-                // })
-                const data = await axios.post(`https://be.flexahub.com/v1/operate/endpointid/${endpointId}/${status}`,{},{
-                                            auth:{
-                                                username: 'vinrap@gmail.com',
-                                                password: 'Vin@7899'
-                                            }
-                                        })
+            
+            const start = (new Date).getTime();
+            
+            //fetch endpoint API
+            const data = await axios.post(`https://be.flexahub.com/v1/operate/endpointid/${endpointId}/${status}`,{},{
+                                        auth:{
+                                            username: 'vinrap@gmail.com',
+                                            password: 'Vin@7899'
+                                        }
+                        }) 
 
-                if(data.status == 200){
-                    //count operation
-                    const count = await db.allAsync(`SELECT * FROM operationCount`)
-                    count[0].opCount += 1
-                    await db.runAsync(`UPDATE operationCount SET opCount = ${count[0].opCount}`)
-                    const operationCount = await db.allAsync(`SELECT * FROM operationCount`)
-                    return res.status(200).json({message:'Operate Successfully.',totalOperations:operationCount[0].opCount,status:status})
-                }else{
-                    return res.status(404).json({errorMessage:'Data Not Found Or Something went wrong!!'})
-                }
+            //count Time duration for operating             
+            const time = ((new Date).getTime() - start).toString().concat(' ms');  
+                                
+            if(data.status == 200){
+                //count operation
+                const count = await db.allAsync(`SELECT * FROM operationCount`)
+                count[0].opCount += 1
+                await db.runAsync(`UPDATE operationCount SET opCount = ${count[0].opCount}`)
+                const operationCount = await db.allAsync(`SELECT * FROM operationCount`)
+                return res.status(200).json({message:'Operate Successfully.',totalOperations:operationCount[0].opCount,status:status,timeDuration:time})
+            }else{
+                return res.status(404).json({errorMessage:'Data Not Found Or Something went wrong!!'})
+            }
         }
         else{
            return res.status(401).json({errorMessage:'May be Session Timeout Or Something Else'})
