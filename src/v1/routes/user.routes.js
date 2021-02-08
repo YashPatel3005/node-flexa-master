@@ -95,6 +95,6 @@ router.post('/nodes/details',UserController.getNodesDetails)
 
 router.get('/demo',UserController.getSessionId)
 
-router.post('/demo/try/:endpointId/:status',UserController.getLiveDemo)
+router.get('/demo/try/:endpointId/:status',UserController.getLiveDemo)
 
 module.exports = router

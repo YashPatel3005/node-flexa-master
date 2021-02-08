@@ -198,9 +198,7 @@ exports.getNodesDetails = async function (req,res,next){
         if(!result){
             return res.status(404).json({Message:'User Data not Found!!'})
         }
-        
         return res.status(200).json({message:'Fetched User Successfully.',usersDetails:result}) 
-
     } catch (err) {
         if (!err.status) {
             err.status = 500;
@@ -213,11 +211,11 @@ exports.getNodesDetails = async function (req,res,next){
 
 exports.getSessionId = async function(req,res,next){
     try {
-        //generate session ID  
+        //generate session ID      
         req.session.uuid = uuid4()
         await db.runAsync(`INSERT INTO session(uuid) VALUES('${req.session.uuid}')`)
         const countUser = await db.allAsync('SELECT * FROM session') 
-        return res.status(200).json({result:countUser.length})
+        return res.status(200).json({visitorsCount:countUser.length})
 
 
         //when session is not exists we create a uuid and add that to our session and on database
@@ -248,26 +246,48 @@ exports.getSessionId = async function(req,res,next){
 
 exports.getLiveDemo = async function(req,res,next){
     try {
-        
         //take endpointid and status from UI 
         const endpointId = req.params.endpointId
         const status = req.params.status
-       
-        // http://localhost:3000/v1/api/users/demo/try/EP_c624aa54-83d6-4128-ad1e-f17e6c2d3e9a/11
         
-        //fetch endpoint API
-        axios.post(`https://be.flexahub.com/v1/operate/endpointid/${endpointId}/${status}`,{},{
-                auth:{
-                    username: 'vinrap@gmail.com',
-                    password: 'Vin@7899'
+        // http:/ calhost:3000/v1/api/users/demo/try/EP_c624aa54-83d6-4128-ad1e-f17e6c2d3e9a/11
+        if(req.session.uuid){
+             //fetch endpoint API
+                // axios.post(`https://be.flexahub.com/v1/operate/endpointid/${endpointId}/${status}`,{},{
+                //     auth:{
+                //         username: 'vinrap@gmail.com',
+                //         password: 'Vin@7899'
+                //     }
+                // })
+                // .then((data)=>{
+                //     // console.log(status);
+                // })
+                // .catch((e)=>{
+                //     console.log("Not Authenticated");
+                // })
+                const data = await axios.post(`https://be.flexahub.com/v1/operate/endpointid/${endpointId}/${status}`,{},{
+                                            auth:{
+                                                username: 'vinrap@gmail.com',
+                                                password: 'Vin@7899'
+                                            }
+                                        })
+
+                if(data.status == 200){
+                    //count operation
+                    const count = await db.allAsync(`SELECT * FROM operationCount`)
+                    count[0].opCount += 1
+                    await db.runAsync(`UPDATE operationCount SET opCount = ${count[0].opCount}`)
+                    const operationCount = await db.allAsync(`SELECT * FROM operationCount`)
+                    return res.status(200).json({message:'Operate Successfully.',totalOperations:operationCount[0].opCount,status:status})
+                }else{
+                    return res.status(404).json({errorMessage:'Data Not Found Or Something went wrong!!'})
                 }
-            })
-            .then((data)=>{
-                console.log(data.data);
-            })
-            .catch((e)=>{
-                console.log("Not Authenticated");
-            })
+        }
+        else{
+           return res.status(401).json({errorMessage:'May be Session Timeout Or Something Else'})
+        }
+       
+
         //Count user that try this demo
         // const count = await db.allAsync(`SELECT * FROM visitorCount`)
         // count[0].userCount += 1
@@ -299,9 +319,7 @@ exports.getLiveDemo = async function(req,res,next){
         //      })
 
         // return res.status(200).json({message:'Fetched User Successfully.',totalVisitors:visitorCount[0].userCount})
-
-  
-        
+   
     }catch (err) {
         if (!err.status) {
             err.status = 500;
