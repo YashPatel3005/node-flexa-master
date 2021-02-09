@@ -93,8 +93,49 @@ router.post('/nodes',UserController.getUsersNodes)
  */
 router.post('/nodes/details',UserController.getNodesDetails)
 
+
+/**
+ * @swagger
+ * /v1/api/users/demo:
+ *  get:
+ *    summary: Create a new Session and Count a visitors who was visited our site
+ *    tags:
+ *       - name : Live Demo
+ *    responses:
+ *      '200':
+ *          description: A Successfull Response
+ *      '404':
+ *          description: Not Found
+ *      '500':
+ *          description: Some Internal Errors
+ */
 router.get('/demo',UserController.getSessionId)
 
+
+/**
+ * @swagger
+ * /v1/api/users/demo/try/{endpointId}/{status}:
+ *  get:
+ *    summary: Operate Device and Count How many users try our demo
+ *    tags:
+ *       - name : Live Demo
+ *    parameters:
+ *       - name : endpointId
+ *         in: path
+ *         required: true
+ *       - name : status
+ *         in: path
+ *         required: true    
+ *    responses:
+ *      '200':
+ *          description: A Successfull Response
+ *      '404':
+ *          description: Not Found
+ *      '500':
+ *          description: Some Internal Errors
+ *      '401':
+ *          description: May be Session Timeout Or Something Else
+ */
 router.get('/demo/try/:endpointId/:status',UserController.getLiveDemo)
 
 module.exports = router

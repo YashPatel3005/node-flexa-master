@@ -178,7 +178,6 @@ exports.getNodesDetails = async function (req,res,next){
                     }
                 }
             }
-            
         
 
             let resetData = data1.map((d)=>([d.NodeResetTime]))
@@ -212,27 +211,33 @@ exports.getNodesDetails = async function (req,res,next){
 exports.getSessionId = async function(req,res,next){
     try {
         //generate session ID      
-        req.session.uuid = uuid4()
-        await db.runAsync(`INSERT INTO session(uuid) VALUES('${req.session.uuid}')`)
-        const countUser = await db.allAsync('SELECT * FROM session') 
-        return res.status(200).json({visitorsCount:countUser.length})
-
-
+        // req.session.uuid = uuid4()
+        // await db.runAsync(`INSERT INTO session(uuid) VALUES('${req.session.uuid}')`)
+        // const countUser = await db.allAsync('SELECT COUNT(uuid) as countUser FROM session') 
+        // return res.status(200).json({visitorsCount:countUser[0].countUser})
+        
+        //calculate How many time user had requested
+        const visitorCount = await db.allAsync(`SELECT * FROM count`)
+        visitorCount[0].visitorCount += 1
+        await db.runAsync(`UPDATE count SET visitorCount = ${visitorCount[0].visitorCount}`)
+        // const visitCount = await db.allAsync(`SELECT * FROM count`)
+        // console.log(visitorCount[0].visitorCount);
+       
         //when session is not exists we create a uuid and add that to our session and on database
-        // if(!req.session.uuid){
-        //     req.session.uuid = uuid4()
-        //     await db.runAsync(`INSERT INTO session(uuid) VALUES('${req.session.uuid}')`)
-        //     const countUser = await db.allAsync('SELECT * FROM session') 
-        //     return res.status(200).json({result:countUser.length})
-        // }
-        // //when session was found on browser count will not increase 
-        // else if(req.session.uuid){
-        //     // req.session.uuid = uuid4()
-        //     // await db.runAsync(`INSERT INTO session(uuid) VALUES('${req.session.uuid}')`)
-        //     // const countUser = await db.allAsync(`SELECT * FROM session WHERE uuid = '${req.session.uuid}'`) 
-        //     const countUser = await db.allAsync(`SELECT * FROM session`) 
-        //     return res.status(200).json({result:countUser.length})
-        // }
+        if(!req.session.uuid){
+            req.session.uuid = uuid4()
+            await db.runAsync(`INSERT INTO session(uuid) VALUES('${req.session.uuid}')`)
+            const countUser = await db.allAsync('SELECT * FROM session') 
+            return res.status(200).json({message:'Fetched Data Successfully.',totalUser:countUser.length,totalVisitor:visitorCount[0].visitorCount})
+        }
+        //when session was found on browser count will not increase 
+        else if(req.session.uuid){
+            // req.session.uuid = uuid4()
+            // await db.runAsync(`INSERT INTO session(uuid) VALUES('${req.session.uuid}')`)
+            // const countUser = await db.allAsync(`SELECT * FROM session WHERE uuid = '${req.session.uuid}'`) 
+            const countUser = await db.allAsync(`SELECT * FROM session`) 
+            return res.status(200).json({message:'Fetched Data Successfully.',totalUser:countUser.length,totalVisitor:visitorCount[0].visitorCount})
+        }
     } catch (err) {
         if (!err.status) {
             err.status = 500;
@@ -268,11 +273,11 @@ exports.getLiveDemo = async function(req,res,next){
                                 
             if(data.status == 200){
                 //count operation
-                const count = await db.allAsync(`SELECT * FROM operationCount`)
+                const count = await db.allAsync(`SELECT * FROM count`)
                 count[0].opCount += 1
-                await db.runAsync(`UPDATE operationCount SET opCount = ${count[0].opCount}`)
-                const operationCount = await db.allAsync(`SELECT * FROM operationCount`)
-                return res.status(200).json({message:'Operate Successfully.',totalOperations:operationCount[0].opCount,status:status,timeDuration:time})
+                await db.runAsync(`UPDATE count SET opCount = ${count[0].opCount}`)
+                const opcount = await db.allAsync(`SELECT * FROM count`)
+                return res.status(200).json({message:'Operate Successfully.',totalOperations:opcount[0].opCount,status:status,timeDuration:time})
             }else{
                 return res.status(404).json({errorMessage:'Data Not Found Or Something went wrong!!'})
             }
@@ -281,39 +286,6 @@ exports.getLiveDemo = async function(req,res,next){
            return res.status(401).json({errorMessage:'May be Session Timeout Or Something Else'})
         }
        
-
-        //Count user that try this demo
-        // const count = await db.allAsync(`SELECT * FROM visitorCount`)
-        // count[0].userCount += 1
-        // await db.runAsync(`UPDATE visitorCount SET userCount = ${count[0].userCount}`)
-        // const visitorCount = await db.allAsync(`SELECT * FROM visitorCount`)
-        
-        //fetch endpoint API
-        // const url = 'https://be.flexahub.com/v1/operate/endpointid/'
-        // const params = {
-        //     endpointid: "EP_c624aa54-83d6-4128-ad1e-f17e6c2d3e9a",
-        //     status: "0" 
-        // }
-        // console.log(params);
-        
-    
-        // const config = {
-        //     auth:{
-        //         username: 'vinrap@gmail.com',
-        //         password: 'Vin@7899'
-        //     }
-        // }
-        // axios.post("https://be.flexahub.com/v1/operate/endpointid/EP_c624aa54-83d6-4128-ad1e-f17e6c2d3e9a/0",config)
-        //      .then((data)=>{
-        //          console.log(data);
-        //          console.log("authenticated");
-        //      })
-        //      .catch((e)=>{
-        //          console.log("Not Authenticated");
-        //      })
-
-        // return res.status(200).json({message:'Fetched User Successfully.',totalVisitors:visitorCount[0].userCount})
-   
     }catch (err) {
         if (!err.status) {
             err.status = 500;

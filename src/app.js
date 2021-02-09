@@ -45,7 +45,7 @@ app.use(session(
     secret: 'secret-key',
     resave: false,
     saveUninitialized: false,
-    cookie: { secure: false}
+    cookie: { secure: false,maxAge:600000}
   }));
 
 app.prefix('/v1',function(app){
