@@ -36,6 +36,16 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 
+
+//Solve CORS Error
+app.use((req, res, next) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'OPTIONS, GET, POST, PUT, PATCH, DELETE');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  next();
+});
+
+
 // //Middle-ware
 app.use(session(
   { name:'SessionCookie',
@@ -47,6 +57,8 @@ app.use(session(
     saveUninitialized: false,
     cookie: { secure: false,maxAge:600000}
   }));
+
+
 
 app.prefix('/v1',function(app){
   app.use('/api',ApiRoutes)
@@ -72,69 +84,3 @@ app.use(function(err, req, res, next) {
 });
 
 module.exports = app;
-
-// var dummy = [
-//   {
-//     userId: 'US_40816709-f54f-4d34-9f2d-07f4c4214087',
-//     email: 'vinrap@gmail.com',
-//     nodeId: null,
-//     status: null
-//   },
-//   {
-//     userId: 'US_40816709-f54f-4d34-9f2d-07f4c4214087',
-//     email: 'vinrap@gmail.com',
-//     nodeId: 'ND_ae46200e-5ff1-4fa9-9ebe-4f440feb49bd',
-//     status: 1
-//   },
-//   {
-//     userId: 'US_40816709-f54f-4d34-9f2d-07f4c4214087',
-//     email: 'vinrap@gmail.com',
-//     nodeId: 'ND_b4815e67-284c-428f-b70c-1501da43882e',
-//     status: 1
-//   },
-//   {
-//     userId: 'US_40816709-f54f-4d34-9f2d-07f4c4214087',
-//     email: 'vinrap@gmail.com',
-//     nodeId: 'ND_4498aacb-671a-4605-be7c-4287876b38e6',
-//     status: 0
-//   },
-//   {
-//     userId: 'US_40816709-f54f-4d34-9f2d-07f4c4214087',
-//     email: 'vinrap@gmail.com',
-//     nodeId: 'ND_9cf33c26-493c-4a64-9d71-5a5ab4d79626',
-//     status: 1
-//   },
-//   {
-//     userId: 'US_40816709-f54f-4d34-9f2d-07f4c4214087',
-//     email: 'vinrap@gmail.com',
-//     nodeId: null,
-//     status: null
-//   },
-//   {
-//     userId: 'US_40816709-f54f-4d34-9f2d-07f4c4214087',
-//     email: 'vinrap@gmail.com',
-//     nodeId: null,
-//     status: null
-//   },
-//   {
-//     userId: 'US_40816709-f54f-4d34-9f2d-07f4c4214087',
-//     email: 'vinrap@gmail.com',
-//     nodeId: 'ND_3148be7c-aa0a-4035-94d3-0454c14a5fc5',
-//     status: 1
-//   },
-//   {
-//     userId: 'US_40816709-f54f-4d34-9f2d-07f4c4214087',
-//     email: 'vinrap@gmail.com',
-//     nodeId: 'ND_b75c4b9c-91f3-43b3-b405-78b703606473',
-//     status: 0
-//   }
-// ];
-
-
-// var dum = dummy.map((d)=>  ({nodeId:d.nodeId, status: d.status}));
-// var usr = {
-//   'userId':dummy[0].userId,
-//   'nodes':dum
-// }
-
-// console.log(JSON.stringify({usr}));

@@ -126,9 +126,14 @@ exports.getNodesDetails = async function (req,res,next){
                     LEFT OUTER JOIN Mastertable_node ON Mastertable_node.masterId = Node.masterId
                     LEFT OUTER JOIN MQTTAliveResponse ON MQTTAliveResponse.nodeMacId = Mastertable_node.nodeMacId
 		
-                    WHERE  Node.masterId = '${masterID}' AND MQTTAliveResponse.timestamp BETWEEN datetime('now', '-1 days') AND datetime('now', 'localtime')
+                    WHERE  Node.masterId = '${masterID}' AND MQTTAliveResponse.timestamp BETWEEN datetime('now', '-10 days') AND datetime('now', 'localtime')
                     ORDER BY MQTTAliveResponse.timestamp desc`
         const data = await db.allAsync(sql1)
+        
+        //if data is not found
+        if(data.length <= 0){
+            return res.status(404).json({errorMessage:'masterId or Data could not fetch'})
+        }
 
         //to get reset count of node
         const sql2 = `SELECT 
@@ -227,16 +232,16 @@ exports.getSessionId = async function(req,res,next){
         if(!req.session.uuid){
             req.session.uuid = uuid4()
             await db.runAsync(`INSERT INTO session(uuid) VALUES('${req.session.uuid}')`)
-            const countUser = await db.allAsync('SELECT * FROM session') 
-            return res.status(200).json({message:'Fetched Data Successfully.',totalUser:countUser.length,totalVisitor:visitorCount[0].visitorCount})
+            const countUser = await db.allAsync('SELECT COUNT(uuid) as countUser FROM session') 
+            return res.status(200).json({message:'Fetched Data Successfully.',totalUser:countUser[0].countUser,totalVisitor:visitorCount[0].visitorCount})
         }
         //when session was found on browser count will not increase 
         else if(req.session.uuid){
             // req.session.uuid = uuid4()
             // await db.runAsync(`INSERT INTO session(uuid) VALUES('${req.session.uuid}')`)
             // const countUser = await db.allAsync(`SELECT * FROM session WHERE uuid = '${req.session.uuid}'`) 
-            const countUser = await db.allAsync(`SELECT * FROM session`) 
-            return res.status(200).json({message:'Fetched Data Successfully.',totalUser:countUser.length,totalVisitor:visitorCount[0].visitorCount})
+            const countUser = await db.allAsync(`SELECT COUNT(uuid) as countUser FROM session`) 
+            return res.status(200).json({message:'Fetched Data Successfully.',totalUser:countUser[0].countUser,totalVisitor:visitorCount[0].visitorCount})
         }
     } catch (err) {
         if (!err.status) {
