@@ -215,6 +215,28 @@ exports.getNodesDetails = async function (req,res,next){
 
 exports.getSessionId = async function(req,res,next){
     try {
+        //count how many times user visit our site 
+        const visitorCount = await db.allAsync(`SELECT * FROM count`)
+        visitorCount[0].visitorCount += 1
+        await db.runAsync(`UPDATE count SET visitorCount = ${visitorCount[0].visitorCount}`)
+
+
+        const cookies = req.body.cookie
+        console.log(cookies);
+
+        const cookieData = await db.allAsync(`SELECT uuid FROM session WHERE uuid = '${cookies}'`)
+        console.log(cookieData);
+        
+        if(cookieData.length <= 0){
+            //count how many user visit our site 
+            await db.runAsync(`INSERT INTO session(uuid) VALUES('${cookies}')`)
+        }
+       
+       
+        const countUser = await db.allAsync('SELECT COUNT(uuid) as countUser FROM session') 
+        
+        return res.status(200).json({message:'Fetched Data Successfully.',totalUser:countUser[0].countUser,totalVisitor:visitorCount[0].visitorCount})
+
         //generate session ID      
         // req.session.uuid = uuid4()
         // await db.runAsync(`INSERT INTO session(uuid) VALUES('${req.session.uuid}')`)
@@ -222,27 +244,28 @@ exports.getSessionId = async function(req,res,next){
         // return res.status(200).json({visitorsCount:countUser[0].countUser})
         
         //calculate How many time user had requested
-        const visitorCount = await db.allAsync(`SELECT * FROM count`)
-        visitorCount[0].visitorCount += 1
-        await db.runAsync(`UPDATE count SET visitorCount = ${visitorCount[0].visitorCount}`)
+        // const visitorCount = await db.allAsync(`SELECT * FROM count`)
+        // visitorCount[0].visitorCount += 1
+        // await db.runAsync(`UPDATE count SET visitorCount = ${visitorCount[0].visitorCount}`)
         // const visitCount = await db.allAsync(`SELECT * FROM count`)
         // console.log(visitorCount[0].visitorCount);
        
         //when session is not exists we create a uuid and add that to our session and on database
-        if(!req.session.uuid){
-            req.session.uuid = uuid4()
-            await db.runAsync(`INSERT INTO session(uuid) VALUES('${req.session.uuid}')`)
-            const countUser = await db.allAsync('SELECT COUNT(uuid) as countUser FROM session') 
-            return res.status(200).json({message:'Fetched Data Successfully.',totalUser:countUser[0].countUser,totalVisitor:visitorCount[0].visitorCount})
-        }
-        //when session was found on browser count will not increase 
-        else if(req.session.uuid){
-            // req.session.uuid = uuid4()
-            // await db.runAsync(`INSERT INTO session(uuid) VALUES('${req.session.uuid}')`)
-            // const countUser = await db.allAsync(`SELECT * FROM session WHERE uuid = '${req.session.uuid}'`) 
-            const countUser = await db.allAsync(`SELECT COUNT(uuid) as countUser FROM session`) 
-            return res.status(200).json({message:'Fetched Data Successfully.',totalUser:countUser[0].countUser,totalVisitor:visitorCount[0].visitorCount})
-        }
+        // if(!req.session.uuid){
+        //     req.session.uuid = uuid4()
+        //     await db.runAsync(`INSERT INTO session(uuid) VALUES('${req.session.uuid}')`)
+        //     const countUser = await db.allAsync('SELECT COUNT(uuid) as countUser FROM session') 
+            
+        //     return res.status(200).json({message:'Fetched Data Successfully.',totalUser:countUser[0].countUser,totalVisitor:visitorCount[0].visitorCount})
+        // }
+        // //when session was found on browser count will not increase 
+        // else if(req.session.uuid){
+        //     // req.session.uuid = uuid4()
+        //     // await db.runAsync(`INSERT INTO session(uuid) VALUES('${req.session.uuid}')`)
+        //     // const countUser = await db.allAsync(`SELECT * FROM session WHERE uuid = '${req.session.uuid}'`) 
+        //     const countUser = await db.allAsync(`SELECT COUNT(uuid) as countUser FROM session`) 
+        //     return res.status(200).json({message:'Fetched Data Successfully.',totalUser:countUser[0].countUser,totalVisitor:visitorCount[0].visitorCount})
+        // }
     } catch (err) {
         if (!err.status) {
             err.status = 500;
@@ -254,14 +277,63 @@ exports.getSessionId = async function(req,res,next){
 }
 
 
+// exports.getSessionId = async function(req,res,next){
+//     try {
+//         // const cookies = req.body.cookie
+//         // console.log(cookies);
+//         //generate session ID      
+//         // req.session.uuid = uuid4()
+//         // await db.runAsync(`INSERT INTO session(uuid) VALUES('${req.session.uuid}')`)
+//         // const countUser = await db.allAsync('SELECT COUNT(uuid) as countUser FROM session') 
+//         // return res.status(200).json({visitorsCount:countUser[0].countUser})
+        
+//         //calculate How many time user had requested
+//         const visitorCount = await db.allAsync(`SELECT * FROM count`)
+//         visitorCount[0].visitorCount += 1
+//         await db.runAsync(`UPDATE count SET visitorCount = ${visitorCount[0].visitorCount}`)
+//         // const visitCount = await db.allAsync(`SELECT * FROM count`)
+//         // console.log(visitorCount[0].visitorCount);
+       
+//         //when session is not exists we create a uuid and add that to our session and on database
+//         if(!req.session.uuid){
+//             req.session.uuid = uuid4()
+//             await db.runAsync(`INSERT INTO session(uuid) VALUES('${req.session.uuid}')`)
+//             const countUser = await db.allAsync('SELECT COUNT(uuid) as countUser FROM session') 
+            
+//             return res.status(200).json({message:'Fetched Data Successfully.',totalUser:countUser[0].countUser,totalVisitor:visitorCount[0].visitorCount})
+//         }
+//         //when session was found on browser count will not increase 
+//         else if(req.session.uuid){
+//             // req.session.uuid = uuid4()
+//             // await db.runAsync(`INSERT INTO session(uuid) VALUES('${req.session.uuid}')`)
+//             // const countUser = await db.allAsync(`SELECT * FROM session WHERE uuid = '${req.session.uuid}'`) 
+//             const countUser = await db.allAsync(`SELECT COUNT(uuid) as countUser FROM session`) 
+//             return res.status(200).json({message:'Fetched Data Successfully.',totalUser:countUser[0].countUser,totalVisitor:visitorCount[0].visitorCount})
+//         }
+//     } catch (err) {
+//         if (!err.status) {
+//             err.status = 500;
+//         }
+//         res.status(err.status).json({message:'Internal Server Error'})
+//         next(err); 
+//     }
+//     db.close()
+// }
+
+
+
 exports.getLiveDemo = async function(req,res,next){
     try {
         //take endpointid and status from UI 
         const endpointId = req.params.endpointId
         const status = req.params.status
+
+        const cookies = req.body.cookie
+        console.log(cookies);
+
         // console.time();
         // http:/ calhost:3000/v1/api/users/demo/try/EP_c624aa54-83d6-4128-ad1e-f17e6c2d3e9a/11
-        if(req.session.uuid){
+        if(cookies){
             
             const start = (new Date).getTime();
             
@@ -300,4 +372,55 @@ exports.getLiveDemo = async function(req,res,next){
     }
     db.close()
 }
+
+
+
+
+
+// exports.getLiveDemo = async function(req,res,next){
+//     try {
+//         //take endpointid and status from UI 
+//         const endpointId = req.params.endpointId
+//         const status = req.params.status
+//         // console.time();
+//         // http:/ calhost:3000/v1/api/users/demo/try/EP_c624aa54-83d6-4128-ad1e-f17e6c2d3e9a/11
+//         if(req.session.uuid){
+            
+//             const start = (new Date).getTime();
+            
+//             //fetch endpoint API
+//             const data = await axios.post(`https://be.flexahub.com/v1/operate/endpointid/${endpointId}/${status}`,{},{
+//                                         auth:{
+//                                             username: 'vinrap@gmail.com',
+//                                             password: 'Vin@7899'
+//                                         }
+//                         }) 
+
+//             //count Time duration for operating             
+//             const time = ((new Date).getTime() - start).toString().concat(' ms');  
+                                
+//             if(data.status == 200){
+//                 //count operation
+//                 const count = await db.allAsync(`SELECT * FROM count`)
+//                 count[0].opCount += 1
+//                 await db.runAsync(`UPDATE count SET opCount = ${count[0].opCount}`)
+//                 const opcount = await db.allAsync(`SELECT * FROM count`)
+//                 return res.status(200).json({message:'Operate Successfully.',totalOperations:opcount[0].opCount,status:status,timeDuration:time})
+//             }else{
+//                 return res.status(404).json({errorMessage:'Data Not Found Or Something went wrong!!'})
+//             }
+//         }
+//         else{
+//            return res.status(401).json({errorMessage:'May be Session Timeout Or Something Else'})
+//         }
+       
+//     }catch (err) {
+//         if (!err.status) {
+//             err.status = 500;
+//         }
+//         res.status(err.status).json({message:'Internal Server Error'})
+//         next(err); 
+//     }
+//     db.close()
+// }
 

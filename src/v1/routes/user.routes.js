@@ -109,7 +109,7 @@ router.post('/nodes/details',UserController.getNodesDetails)
  *      '500':
  *          description: Some Internal Errors
  */
-router.get('/demo',UserController.getSessionId)
+router.post('/demo',UserController.getSessionId)
 
 
 /**
@@ -136,6 +136,6 @@ router.get('/demo',UserController.getSessionId)
  *      '401':
  *          description: May be Session Timeout Or Something Else
  */
-router.get('/demo/try/:endpointId/:status',UserController.getLiveDemo)
+router.post('/demo/try/:endpointId/:status',UserController.getLiveDemo)
 
 module.exports = router

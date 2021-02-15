@@ -5,9 +5,10 @@ var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 const path = require('path');
 
-const session = require('express-session')
+// const session = require('express-session')
 // const lodash = require('lodash')
-const { v4: uuid4 } = require('uuid')
+// const { v4: uuid4 } = require('uuid')
+const cors = require('cors')
 
 //set Environment variable using dotenv package 
 const envPath = path.resolve(process.cwd(), '.env.'+ process.env.NODE_ENV)
@@ -37,26 +38,29 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 
 
-//Solve CORS Error
-app.use((req, res, next) => {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'OPTIONS, GET, POST, PUT, PATCH, DELETE');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  next();
-});
-
+// Solve CORS Error
+// app.use((req, res, next) => {
+//   res.setHeader('Access-Control-Allow-Origin', '*');
+//   res.setHeader('Access-Control-Allow-Methods', 'OPTIONS, GET, POST, PUT, PATCH, DELETE');
+//   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+//   res.setHeader('Access-Control-Allow-Credentials',"true")
+//   next();
+// });
+app.use(cors({origin: [
+  "http://localhost:4200","*","65.1.36.205:4200"
+], credentials: true}));
 
 // //Middle-ware
-app.use(session(
-  { name:'SessionCookie',
-    genid: function(req) {
-        console.log('session id created');
-      return uuid4();}, // use UUIDs for session IDs
-    secret: 'secret-key',
-    resave: false,
-    saveUninitialized: false,
-    cookie: { secure: false,maxAge:600000}
-  }));
+// app.use(session(
+//   { name:'SessionCookie',
+//     genid: function(req) {
+//         console.log('session id created');
+//       return uuid4();}, // use UUIDs for session IDs
+//     secret: 'secret-key',
+//     resave: false,
+//     saveUninitialized: false,
+//     cookie: { secure: false,maxAge:600000,sameSite:'None',httpOnly:false}
+//   }));
 
 
 
