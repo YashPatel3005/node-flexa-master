@@ -47,7 +47,7 @@ app.use(cookieParser());
 //   next();
 // });
 app.use(cors({origin: [
-  "http://localhost:4200","*","65.1.36.205:4200"
+  "http://localhost:4200","*","65.1.36.205:4200","http://127.0.0.1:4201","https://admin.zoyoto.io"
 ], credentials: true}));
 
 // //Middle-ware

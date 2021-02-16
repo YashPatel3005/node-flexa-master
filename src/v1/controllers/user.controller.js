@@ -1,7 +1,7 @@
 var moment = require('moment'); // require
 moment().format(); 
 
-const { v4: uuid4 } = require('uuid')
+// const { v4: uuid4 } = require('uuid')
 const Promise = require('bluebird');
 const axios = require('axios')
 
@@ -126,13 +126,13 @@ exports.getNodesDetails = async function (req,res,next){
                     LEFT OUTER JOIN Mastertable_node ON Mastertable_node.masterId = Node.masterId
                     LEFT OUTER JOIN MQTTAliveResponse ON MQTTAliveResponse.nodeMacId = Mastertable_node.nodeMacId
 		
-                    WHERE  Node.masterId = '${masterID}' AND MQTTAliveResponse.timestamp BETWEEN datetime('now', '-10 days') AND datetime('now', 'localtime')
+                    WHERE  Node.masterId = '${masterID}' AND MQTTAliveResponse.timestamp BETWEEN datetime('now', '-30 days') AND datetime('now', 'localtime')
                     ORDER BY MQTTAliveResponse.timestamp desc`
         const data = await db.allAsync(sql1)
         
         //if data is not found
         if(data.length <= 0){
-            return res.status(404).json({errorMessage:'masterId or Data could not fetch'})
+            return res.status(404).json({error:'masterId or Data could not fetch'})
         }
 
         //to get reset count of node
@@ -217,15 +217,22 @@ exports.getSessionId = async function(req,res,next){
     try {
         //count how many times user visit our site 
         const visitorCount = await db.allAsync(`SELECT * FROM count`)
+        // console.log(visitorCount);
+        if(!visitorCount){
+            return res.status(503).json({error:'No content'})
+        }
         visitorCount[0].visitorCount += 1
         await db.runAsync(`UPDATE count SET visitorCount = ${visitorCount[0].visitorCount}`)
 
 
         const cookies = req.body.cookie
-        console.log(cookies);
+        if(!cookies){
+            return res.status(400).json({error:'cookies are required'})
+        }
+        // console.log(cookies);
 
         const cookieData = await db.allAsync(`SELECT uuid FROM session WHERE uuid = '${cookies}'`)
-        console.log(cookieData);
+        // console.log(cookieData);
         
         if(cookieData.length <= 0){
             //count how many user visit our site 
@@ -235,7 +242,7 @@ exports.getSessionId = async function(req,res,next){
        
         const countUser = await db.allAsync('SELECT COUNT(uuid) as countUser FROM session') 
         
-        return res.status(200).json({message:'Fetched Data Successfully.',totalUser:countUser[0].countUser,totalVisitor:visitorCount[0].visitorCount})
+        return res.status(200).json({message:'Fetched Data Successfully.',totalUser:countUser[0].countUser,totalVisited:visitorCount[0].visitorCount})
 
         //generate session ID      
         // req.session.uuid = uuid4()
@@ -329,7 +336,7 @@ exports.getLiveDemo = async function(req,res,next){
         const status = req.params.status
 
         const cookies = req.body.cookie
-        console.log(cookies);
+        // console.log(cookies);
 
         // console.time();
         // http:/ calhost:3000/v1/api/users/demo/try/EP_c624aa54-83d6-4128-ad1e-f17e6c2d3e9a/11
@@ -356,13 +363,12 @@ exports.getLiveDemo = async function(req,res,next){
                 const opcount = await db.allAsync(`SELECT * FROM count`)
                 return res.status(200).json({message:'Operate Successfully.',totalOperations:opcount[0].opCount,status:status,timeDuration:time})
             }else{
-                return res.status(404).json({errorMessage:'Data Not Found Or Something went wrong!!'})
+                return res.status(404).json({error:'Data Not Found Or Something went wrong!!'})
             }
         }
         else{
-           return res.status(401).json({errorMessage:'May be Session Timeout Or Something Else'})
+           return res.status(401).json({error:'May be Session Timeout Or Something Else'})
         }
-       
     }catch (err) {
         if (!err.status) {
             err.status = 500;
@@ -407,11 +413,11 @@ exports.getLiveDemo = async function(req,res,next){
 //                 const opcount = await db.allAsync(`SELECT * FROM count`)
 //                 return res.status(200).json({message:'Operate Successfully.',totalOperations:opcount[0].opCount,status:status,timeDuration:time})
 //             }else{
-//                 return res.status(404).json({errorMessage:'Data Not Found Or Something went wrong!!'})
+//                 return res.status(404).json({error:'Data Not Found Or Something went wrong!!'})
 //             }
 //         }
 //         else{
-//            return res.status(401).json({errorMessage:'May be Session Timeout Or Something Else'})
+//            return res.status(401).json({error:'May be Session Timeout Or Something Else'})
 //         }
        
 //     }catch (err) {

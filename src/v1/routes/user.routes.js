@@ -94,10 +94,11 @@ router.post('/nodes',UserController.getUsersNodes)
 router.post('/nodes/details',UserController.getNodesDetails)
 
 
+//here we send a cookie in body
 /**
  * @swagger
  * /v1/api/users/demo:
- *  get:
+ *  post:
  *    summary: Create a new Session and Count a visitors who was visited our site
  *    tags:
  *       - name : Live Demo
@@ -115,7 +116,7 @@ router.post('/demo',UserController.getSessionId)
 /**
  * @swagger
  * /v1/api/users/demo/try/{endpointId}/{status}:
- *  get:
+ *  post:
  *    summary: Operate Device and Count How many users try our demo
  *    tags:
  *       - name : Live Demo
