@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "start": "export NODE_ENV=prod && node ./src/bin/www",
-    "start-dev": "export NODE_ENV=dev && nodemon ./src/bin/www",
+    "start-dev": "export NODE_ENV=dev && node ./src/bin/www",
     "test": "export NODE_ENV=test && mocha"
   },
   "dependencies": {

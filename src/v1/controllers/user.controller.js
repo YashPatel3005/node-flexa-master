@@ -126,7 +126,7 @@ exports.getNodesDetails = async function (req,res,next){
                     LEFT OUTER JOIN Mastertable_node ON Mastertable_node.masterId = Node.masterId
                     LEFT OUTER JOIN MQTTAliveResponse ON MQTTAliveResponse.nodeMacId = Mastertable_node.nodeMacId
 		
-                    WHERE  Node.masterId = '${masterID}' AND MQTTAliveResponse.timestamp BETWEEN datetime('now', '-30 days') AND datetime('now', 'localtime')
+                    WHERE  Node.masterId = '${masterID}' AND MQTTAliveResponse.timestamp BETWEEN datetime('now', '-90 days') AND datetime('now', 'localtime')
                     ORDER BY MQTTAliveResponse.timestamp desc`
         const data = await db.allAsync(sql1)
         
