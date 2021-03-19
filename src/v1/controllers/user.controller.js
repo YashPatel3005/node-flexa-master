@@ -38,11 +38,11 @@ exports.getUsers = async function(req,res,next){
             
             userInfo[i] = {
                 ...userInfo[i],
-                ...data[i]
+                ...data[0]
             }
+            
             delete userInfo[i].nodeMacId;
         }    
-        
         if(!userInfo){
             return res.status(404).json({Message:'User Data not Found!!'})
         }
@@ -51,10 +51,10 @@ exports.getUsers = async function(req,res,next){
         if (!err.status) {
             err.status = 500;
         }
-        res.status(err.status).json({message:'Internal Server Error'})
-        next(err); 
+        return res.status(err.status).json({message:'Internal Server Error'})
+        // next(err); 
     }
-    db.close()
+    // db.close()
 }
 
 exports.getUsersNodes = async function(req,res,next){
@@ -81,7 +81,11 @@ exports.getUsersNodes = async function(req,res,next){
                     
                     WHERE user.userId IN (${ids}) AND Node.nodeId IS NOT NULL`
         const userDetail = await db.allAsync(sql,userID)
-       
+      
+        if(userDetail.length == 0){
+            return res.status(404).json({Message:'User Data not Found for this userId!!'})
+        }
+
         let result = []
         
         for(let i=0;i<userID.length;i++){
@@ -105,10 +109,10 @@ exports.getUsersNodes = async function(req,res,next){
         if (!err.status) {
             err.status = 500;
         }
-        res.status(err.status).json({message:'Internal Server Error'})
-        next(err); 
+        return res.status(err.status).json({message:'Internal Server Error'})
+        // next(err); 
     }
-    db.close()
+    // db.close()
 }
 
 
@@ -207,10 +211,10 @@ exports.getNodesDetails = async function (req,res,next){
         if (!err.status) {
             err.status = 500;
         }
-        res.status(err.status).json({message:'Internal Server Error'})
-        next(err); 
+        return res.status(err.status).json({message:'Internal Server Error'})
+        // next(err); 
     }
-    db.close()
+    // db.close()
 }
 
 exports.getSessionId = async function(req,res,next){
@@ -277,10 +281,10 @@ exports.getSessionId = async function(req,res,next){
         if (!err.status) {
             err.status = 500;
         }
-        res.status(err.status).json({message:'Internal Server Error'})
-        next(err); 
+        return res.status(err.status).json({message:'Internal Server Error'})
+        // next(err); 
     }
-    db.close()
+    // db.close()
 }
 
 
@@ -373,10 +377,10 @@ exports.getLiveDemo = async function(req,res,next){
         if (!err.status) {
             err.status = 500;
         }
-        res.status(err.status).json({message:'Internal Server Error'})
-        next(err); 
+        return res.status(err.status).json({message:'Internal Server Error'})
+        // next(err); 
     }
-    db.close()
+    // db.close()
 }
 
 

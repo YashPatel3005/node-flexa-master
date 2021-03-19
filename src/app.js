@@ -49,10 +49,9 @@ app.use(cookieParser());
 app.use(cors({origin: [
   "http://localhost:4200",
   "*",
-  "65.1.36.205:4200",
-  "http://127.0.0.1:4201",
   "http://localhost:5000",
   "https://admin.zoyoto.io",
+  "http://demo.zoyoto.io",
   "https://demo.zoyoto.io"
 ], credentials: true}));
 
@@ -94,3 +93,4 @@ app.use(function(err, req, res, next) {
 });
 
 module.exports = app;
+
