@@ -4,6 +4,10 @@ moment().format();
 // const { v4: uuid4 } = require('uuid')
 const Promise = require('bluebird');
 const axios = require('axios')
+const path = require('path');
+//set Environment variable using dotenv package 
+const envPath = path.resolve(process.cwd(), '.env.'+ process.env.NODE_ENV)
+require('dotenv').config({path: envPath.replace(' ','')})
 
 const db = Promise.promisifyAll(require('../../config/database'))
 
@@ -119,6 +123,7 @@ exports.getUsersNodes = async function(req,res,next){
 exports.getNodesDetails = async function (req,res,next){
     try {
         const masterID = req.body.masterId
+       
         //to get a timestamp from MQTTAliveResponce table
         const sql1 = `SELECT 
                         Node.masterId,
@@ -130,7 +135,7 @@ exports.getNodesDetails = async function (req,res,next){
                     LEFT OUTER JOIN Mastertable_node ON Mastertable_node.masterId = Node.masterId
                     LEFT OUTER JOIN MQTTAliveResponse ON MQTTAliveResponse.nodeMacId = Mastertable_node.nodeMacId
 		
-                    WHERE  Node.masterId = '${masterID}' AND MQTTAliveResponse.timestamp BETWEEN datetime('now', '-90 days') AND datetime('now', 'localtime')
+                    WHERE  Node.masterId = '${masterID}' AND MQTTAliveResponse.timestamp BETWEEN datetime('now', '-3 days') AND datetime('now', 'localtime')
                     ORDER BY MQTTAliveResponse.timestamp desc`
         const data = await db.allAsync(sql1)
         
@@ -335,13 +340,14 @@ exports.getSessionId = async function(req,res,next){
 
 exports.getLiveDemo = async function(req,res,next){
     try {
+        const url = process.env.URL
         //take endpointid and status from UI 
         const endpointId = req.params.endpointId
         const status = req.params.status
 
         const cookies = req.body.cookie
         // console.log(cookies);
-
+       
         // console.time();
         // http:/ calhost:3000/v1/api/users/demo/try/EP_c624aa54-83d6-4128-ad1e-f17e6c2d3e9a/11
         if(cookies){
@@ -349,10 +355,10 @@ exports.getLiveDemo = async function(req,res,next){
             const start = (new Date).getTime();
             
             //fetch endpoint API
-            const data = await axios.post(`https://be.flexahub.com/v1/operate/endpointid/${endpointId}/${status}`,{},{
+            const data = await axios.post(`${url}/v1/operate/endpointid/${endpointId}/${status}`,{},{
                                         auth:{
-                                            username: 'vinrap@gmail.com',
-                                            password: 'Vin@7899'
+                                            username: process.env.USERNAME,
+                                            password: process.env.PASSWORD
                                         }
                         }) 
 
